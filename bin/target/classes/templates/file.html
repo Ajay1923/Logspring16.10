@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log File Upload</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "Arial", sans-serif;
+            background: linear-gradient(to right, #FFD700, #FF6347);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background-color: #581845;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+            font-size: 28px;
+            position: fixed;
+            top: 0;
+            left: 160px;
+            width: calc(100% - 160px);
+            z-index: 500;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logout-btn {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            background-color: #00796b;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 10px 20px;
+            transition: background-color 0.3s;
+        }
+
+        .logout-btn:hover {
+            background-color: #004d40;
+        }
+
+        .sidebar {
+            margin: 0;
+            padding: 10px;
+            width: 160px;
+            background: linear-gradient(to right, #FFD700, #FF6347);
+            position: fixed;
+            height: 100%;
+            overflow: auto;
+            top: 0;
+            left: 0;
+            z-index: 999;
+        }
+
+        .sidebar h2 {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #ffffff;
+        }
+
+        .sidebar a {
+            display: block;
+            color: #ffffff;
+            padding: 10px;
+            text-decoration: none;
+            font-size: 18px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar a.active,
+        .sidebar a:hover {
+            background-color: #004d40;
+        }
+
+        .content {
+            margin-left: 160px;
+            padding: 20px;
+            padding-top: 60px;
+        }
+
+        .box-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            margin-bottom: 160px;
+        }
+
+        .box {
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            flex: 1 1 50%;
+            margin: 20px;
+            margin-top: 60px;
+            min-width: 40px;
+            max-width: 30%;
+            height: auto; /* Adjust height */
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .log-counts {
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+        }
+
+        .log-counts table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .log-counts th,
+        .log-counts td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        .log-counts th {
+            background-color: #00796b;
+            color: #ffffff;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        label {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        input[type="file"] {
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 5px;
+            background-color: #f9f9f9;
+        }
+
+        button {
+            padding: 10px 20px;
+            color: #ffffff;
+            background-color: #00796b;
+            border: 1px solid #004d40;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #004d40;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .error, .success {
+            text-align: center;
+            font-weight: bold;
+            margin: 40px 0;
+        }
+
+        .error {
+            color: #d32f2f;
+        }
+
+        .success {
+            color: #388e3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span>Log File Analyser</span>
+        <button onclick="window.location.href='/login'" class="logout-btn">Logout</button>
+    </div>
+    
+    <div class="sidebar">
+        <h2><a href="/webpage" class="active">File Upload</a></h2>
+        <h2><a href="/statistics">Statistics</a></h2>
+        <h2><a href="/settings">User Details</a></h2>
+    </div>
+
+    <div class="content">
+        <div class="box-container">
+            <div class="box form-container">
+                <center><h2>Upload Log File</h2></center>
+                <form action="/upload" method="post" enctype="multipart/form-data">
+                    <label for="logfile">Select a log file:</label>
+                    <input type="file" id="logfile" name="logfile" accept=".log">
+                    <button type="submit">Upload</button>
+                </form>
+            </div>
+
+            <div class="box log-counts" id="processedLogDetails">
+                <center><h2>Processed Log Details</h2></center>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Log Levels</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="entry : ${counts}">
+                            <td th:text="${entry.key}"></td>
+                            <td>
+                                <a href="#" th:data-type="${entry.key}" onclick="showFilteredLogs(this.dataset.type)">
+                                    <span th:text="${entry.value}"></span>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+   <script>
+    function showSection(sectionId) {
+        // Hide all log sections and button groups
+        document.querySelectorAll('.logs').forEach(el => {
+            el.classList.add('hide');
+            el.classList.remove('centered');
+        });
+
+        // Hide all button groups
+        document.querySelectorAll('.btn-group-logs').forEach(el => el.classList.add('hide'));
+
+        // Show the relevant section and button groups based on the sectionId
+        if (sectionId === 'logs') {
+            document.getElementById('logs').classList.remove('hide');
+            document.getElementById('logs').classList.add('centered');
+            document.getElementById('backBtnAll').classList.remove('hide');
+        } else if (sectionId === 'errorLogs') {
+            document.getElementById('errorLogs').classList.remove('hide');
+            document.getElementById('errorLogs').classList.add('centered');
+            document.getElementById('downloadErrorLogsBtnGroup').classList.remove('hide'); // Show download button group for error logs
+            document.getElementById('downloadFilteredLogsBtnGroup').classList.add('hide'); // Ensure filtered button is hidden
+        } else if (sectionId === 'filteredLogs') {
+            document.getElementById('filteredLogs').classList.remove('hide');
+            document.getElementById('filteredLogs').classList.add('centered');
+            document.getElementById('downloadFilteredLogsBtnGroup').classList.remove('hide'); // Show button group for downloading filtered logs
+        }
+    }
+
+    function showFilteredLogs(exceptionType) {
+        fetch(`/filteredErrorLogs?exceptionType=${exceptionType}`)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.querySelector('#filteredLogs tbody');
+                tbody.innerHTML = ''; 
+                data.forEach(log => {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.textContent = log;
+                    tr.appendChild(td);
+                    tbody.appendChild(tr);
+                });
+
+                // After updating the filtered logs table, show the filtered logs section
+                showSection('filteredLogs');
+
+                // Update the download button to download the filtered logs for the selected exception type
+                const downloadBtn = document.getElementById('downloadFilteredErrorLogsBtn');
+                downloadBtn.onclick = function () {
+                    window.location.href = `/downloadFilteredErrorLogs?exceptionType=${exceptionType}`;
+                };
+            })
+            .catch(error => console.error('Error fetching filtered logs:', error));
+    }
+
+    // Initialize by hiding the Download Filtered Logs button group initially
+    document.getElementById('downloadFilteredLogsBtnGroup').classList.add('hide'); // Hide button initially
+    document.getElementById('downloadErrorLogsBtnGroup').classList.add('hide'); // Hide error logs button initially
+    showSection('main'); // Show the main section initially
+    
+    function showNotification(message, isSuccess) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = isSuccess ? 'success' : 'error'; 
+        notification.style.display = 'block'; // Show the notification
+
+        setTimeout(() => notification.style.display = 'none', 3000); // Hide after 3 seconds
+    }
+
+    function sendMail() {
+        fetch('/sendMail', { method: 'POST' })
+            .then(response => {
+                if (response.ok) {
+                    showNotification("Mail sent successfully!", true);
+                } else {
+                    showNotification("Failed to send mail.", false);
+                }
+            })
+            .catch(error => showNotification('Error sending mail: ' + error, false));
+    }
+
+    function sendErrorLogsMail() {
+        fetch('/sendErrorLogsMail', { method: 'POST' })
+            .then(response => {
+                if (response.ok) {
+                    showNotification("Error logs mail sent successfully!", true);
+                } else {
+                    showNotification("Failed to send error logs mail.", false);
+                }
+            })
+            .catch(error => showNotification('Error sending error logs mail: ' + error, false));
+    }
+</script>
+</body>
+</html>
